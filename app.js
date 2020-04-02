@@ -16,9 +16,6 @@ var team = [];
 var uniqueID = 0;
 
 
-// Write code to use inquirer to gather information about the development team members,
-// and to create objects for each team member (using the correct classes as blueprints!)
-
 // Menu for creating an engineer. prompts user for engineer information
 function createEngineer(){
     // Define questions to ask when creating an engineer
@@ -89,18 +86,23 @@ function createManager(){
         team.push(new Manager(name, uniqueID, email, officeNo));
         // increment the uniqueID after creating a new employee
         uniqueID++;
-        console.log(team, uniqueID);
     })
 }
 
+// Function to ask the user what type of employee they'd like to add. Uses promise chaining to display questions specific to each employee type 
 function addEmployee(){
+    // First question, asks user what type of employee to add to the team
     inquirer.prompt({
         type: "list",
         message: `What kind of employee would you like to add to the team?`,
         choices: ["Engineer", "Intern", "Manager"],
         name: "type"
-    }).then(function (response) {
+    })
+    // Once the user makes a choice, redirects to a function with questions specific to that employee type
+    .then(function (response) {
+        // Grab the employee type from the inquirer response
         type = response.type;
+        // Switch case based on what type the user chose from the list
         switch(type){
             case "Engineer":
                 return createEngineer();
@@ -109,43 +111,49 @@ function addEmployee(){
             case "Manager":
                 return createManager();
         }
-    }).then(function(){
+    })
+    // After returning from the employee specific function, ask if the user wants to add another employee
+    .then(function(){
         console.log(team);
+        // promise chaining, return the result of the user choosing whether they want to enter another employee
         return inquirer.prompt({
             type: "list",
             message: "Do you want to add another employee?: ",
             choices: ["Yes", "No"],
             name: "continue"
         })
-    }).then(function(answer) {
+    })
+    // If the user wants to enter another employee, return to the top of this function and loop through the questions again. Otherwise, return a call to the function that writes the team data to an html. 
+    .then(function(answer) {
+        // Grab the confirmation from the inquirer response
         let confirm = answer.continue;
+        // If they do want to add another employee, call this function again and loop through the questions
         if(confirm === "Yes"){
             addEmployee();
         }
+        // Otherwise, call the function to write the team data to the html file.
         else if(confirm === "No") {
-            console.log("Ending. Write to file here.")
+            console.log("Ending. Write to file here.");
+            htmlData = render(team);
+            console.log(htmlData);
         }
+    })
+    // Error handling. Should catch errors from any of the promises in the chain.
+    .catch(function(error){
+        throw error;
     });
 }
-
-addEmployee();
-
-// After the user has input all employees desired, call the `render` function (required
-// above) and pass in an array containing all employee objects; the `render` function will
-// generate and return a block of HTML including templated divs for each employee!
 
 // After you have your html, you're now ready to create an HTML file using the HTML
 // returned from the `render` function. Now write it to a file named `team.html` in the
 // `output` folder. You can use the variable `outputPath` above target this location.
 // Hint: you may need to check if the `output` folder exists and create it if it
 // does not.
+// .then(function(html){
+//     console.log("Finished writing the html file!: \n" + html);
+// })
 
-// HINT: each employee type (manager, engineer, or intern) has slightly different
-// information; write your code to ask different questions via inquirer depending on
-// employee type.
 
-// HINT: make sure to build out your classes first! Remember that your Manager, Engineer,
-// and Intern classes should all extend from a class named Employee; see the directions
-// for further information. Be sure to test out each class and verify it generates an 
-// object with the correct structure and methods. This structure will be crucial in order
-// for the provided `render` function to work!```
+addEmployee();
+
+
